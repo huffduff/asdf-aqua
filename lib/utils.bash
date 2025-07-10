@@ -2,6 +2,11 @@
 
 set -euo pipefail
 
+if [ -n "${ASDF_DEBUG+1}" ]; then
+	echo "Debug mode is enabled"
+	set -x
+fi
+
 # TODO: Ensure this is the correct GitHub homepage where releases can be downloaded for aqua.
 GH_REPO="https://github.com/aquaproj/aqua"
 TOOL_NAME="aqua"
