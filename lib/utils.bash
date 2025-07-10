@@ -7,6 +7,23 @@ GH_REPO="https://github.com/aquaproj/aqua"
 TOOL_NAME="aqua"
 TOOL_TEST="aqua version"
 
+uname_os() {
+	echo "$(uname -s | tr '[:upper:]' '[:lower:]')"
+}
+
+uname_arch() {
+	local arch
+	arch=$(uname -m)
+	case $arch in
+		x86_64) arch="amd64" ;;
+		aarch64) arch="arm64" ;;
+	esac
+	echo "${arch}"
+}
+
+OS="$(uname_os)"
+ARCH="$(uname_arch)"
+
 fail() {
 	echo -e "asdf-$TOOL_NAME: $*"
 	exit 1
@@ -27,11 +44,11 @@ sort_versions() {
 list_github_tags() {
 	git ls-remote --tags --refs "$GH_REPO" |
 		grep -o 'refs/tags/.*' | cut -d/ -f3- |
+		grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' |
 		sed 's/^v//' # NOTE: You might want to adapt this sed to remove non-version strings from tags
 }
 
 list_all_versions() {
-	# TODO: Adapt this. By default we simply list the tag names from GitHub releases.
 	# Change this function if aqua has other means of determining installable versions.
 	list_github_tags
 }
@@ -41,8 +58,8 @@ download_release() {
 	version="$1"
 	filename="$2"
 
-	# TODO: Adapt the release URL convention for aqua
-	url="$GH_REPO/archive/v${version}.tar.gz"
+	# eg: https://github.com/aquaproj/aqua/releases/download/v2.53.3/aqua_darwin_amd64.tar.gz
+	url="$GH_REPO/releases/download/v${version}/aqua_${OS}_${ARCH}.tar.gz"
 
 	echo "* Downloading $TOOL_NAME release $version..."
 	curl "${curl_opts[@]}" -o "$filename" -C - "$url" || fail "Could not download $url"
